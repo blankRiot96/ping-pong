@@ -11,3 +11,8 @@
 `py -m pip install -r requirements.txt`
 - Run the code  
 `py run.py`
+
+## 🐻‍❄️ Credits
+- Sneakyboss221#7167
+- DaBot#5168
+- Sneakyboss221#7167
