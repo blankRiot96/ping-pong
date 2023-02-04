@@ -13,6 +13,6 @@
 `py run.py`
 
 ## 🐻‍❄️ Credits
-- Sneakyboss221#7167
+- Axis#3719
 - DaBot#5168
 - Sneakyboss221#7167
