@@ -44,13 +44,16 @@ class Button:
         self.color = color
         self.surf = self.FONT.render(self.title, True, color)
 
+    def handle_selection(self):
+        for event in self.glow.events:
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_RETURN:
+                    self.glow.current_state = self.statename
+
     def update(self):
         if self.color == "yellow":
             self.pos.y += self.wave.val() * self.HOVER_SPEED * self.glow.dt
-            for event in self.glow.events:
-                if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_RETURN:
-                        self.glow.current_state = self.statename
+            self.handle_selection()
         else:
             self.pos = self.original_pos.copy()
 
