@@ -4,21 +4,25 @@ from game.global_state import Global
 
 class Game:
     def __init__(self) -> None:
+        self.win_init()
+
+        from game.states import GameState, MenuState
+
+        self.glow.current_state = "menu"
+        self.states = {"menu": MenuState, "maingame": GameState}
+        self.state = self.states[self.glow.current_state]()
+        self.last_current_state = self.glow.current_state
+
+        pygame.display.set_caption("Ping Pong")
+
+    def win_init(self):
         pygame.init()
-        self.screen = pygame.display.set_mode(Global.SCRECT.size, pygame.SCALED)
+        self.screen = pygame.display.set_mode(Global.SCRECT.size)
         self.clock = pygame.time.Clock()
         self.glow = Global(events=[], keys=[], dt=0.0, screen=self.screen)
-
-        from game.paddles import LeftPaddle, RightPaddle
-        from game.ball import Ball
-
-        self.paddles = (LeftPaddle(), RightPaddle())
-        self.dotted_lines = pygame.image.load("assets/dotted.png").convert_alpha()
-        self.dotted_lines.set_alpha(50)
-        self.ball = Ball(50)
-
-        self.glow.left_paddle, self.glow.right_paddle = self.paddles
         pygame.display.set_caption("Ping Pong")
+        logo = pygame.image.load("assets/logo.jpg")
+        pygame.display.set_icon(logo)
 
     def handle_quit(self) -> None:
         for event in self.glow.events:
@@ -33,18 +37,15 @@ class Game:
 
         self.handle_quit()
 
-        for paddle in self.paddles:
-            paddle.update()
-
-        self.ball.update()
+        self.state.update()
+        if self.glow.current_state != self.last_current_state:
+            self.state = self.states[self.glow.current_state]()
+        self.last_current_state = self.glow.current_state
 
     def draw(self) -> None:
         self.screen.fill((30, 30, 40))
-        self.screen.blit(self.dotted_lines, (0, 0))
-        for paddle in self.paddles:
-            paddle.draw()
 
-        self.ball.draw()
+        self.state.draw()
 
         pygame.display.update()
 

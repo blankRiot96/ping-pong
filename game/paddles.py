@@ -12,6 +12,18 @@ class Paddle(abc.ABC):
         super().__init__()
         self.glow = Global()
         self.speed = 0.0
+        self.__score = 0
+        self.font = pygame.font.Font(None, 40)
+        self.score_surf = self.font.render(str(self.__score), True, "white")
+
+    @property
+    def score(self):
+        return self.__score
+
+    @score.setter
+    def score(self, val):
+        self.__score = val
+        self.score_surf = self.font.render(str(self.__score), True, "white")
 
     def update(self) -> None:
         self.update_pos()
@@ -28,6 +40,7 @@ class Paddle(abc.ABC):
 
     def draw(self) -> None:
         self.glow.screen.blit(self.image, self.pos)
+        self.glow.screen.blit(self.score_surf, (self.pos.x, 20))
 
 
 class LeftPaddle(Paddle):

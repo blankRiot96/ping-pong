@@ -19,8 +19,9 @@ class Ball:
         self.hitbox = self.image.get_rect(center=self.glow.SCRECT.center)
         self.pos = pygame.Vector2(self.glow.SCRECT.center)
         self.rad = random.uniform(0, 2 * math.pi)
-        self.speed = 258.2
+        self.speed = 350.2
         self.dv = pygame.Vector2()
+        self.alive = True
 
     def collide_left_paddle(self):
         if not self.hitbox.colliderect(self.glow.left_paddle.rect):
@@ -53,7 +54,7 @@ class Ball:
         else:
             self.rad = random.uniform(2 * math.pi / 3, 5 * math.pi / 6)
 
-    def update(self):
+    def move(self):
         dv = get_dv(self.rad)
         self.dv = dv
         dv.x *= self.glow.dt * self.speed
@@ -61,10 +62,26 @@ class Ball:
         self.pos += dv
         self.hitbox.center = self.pos
 
+    def update_score(self):
+        if self.hitbox.left < 0:
+            self.glow.right_paddle.score += 1
+            self.alive = False
+        elif self.hitbox.right > self.glow.SCREEN_WIDTH:
+            self.glow.left_paddle.score += 1
+            self.alive = False
+
+    def on_death(self):
+        if not self.alive:
+            self.glow.ball = type(self)(50)
+
+    def update(self):
+        self.move()
         self.collide_left_paddle()
         self.collide_right_paddle()
         self.collide_bottom()
         self.collide_top()
+        self.update_score()
+        self.on_death()
 
     def draw(self):
         self.glow.screen.blit(self.image, self.hitbox)
