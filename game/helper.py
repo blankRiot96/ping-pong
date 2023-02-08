@@ -6,6 +6,9 @@ class Time:
         self.seconds = seconds
         self.start = time.perf_counter()
 
+    def reset(self):
+        self.start = time.perf_counter()
+
     def tick(self) -> bool:
         end = time.perf_counter()
         if end - self.start > self.seconds:

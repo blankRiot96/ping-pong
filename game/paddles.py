@@ -54,6 +54,9 @@ class Paddle(abc.ABC):
 class LeftPaddle(Paddle):
     UP_CONTROL = pygame.K_w
     DOWN_CONTROL = pygame.K_s
+    LEFT_CONTROL = pygame.K_a
+    RIGHT_CONTROL = pygame.K_d
+
     COLOR = "blue"
 
     def __init__(self) -> None:
@@ -64,10 +67,16 @@ class LeftPaddle(Paddle):
         self.rect.x = self.PAD
         self.pos = pygame.Vector2(self.rect.topleft)
 
+    def update(self) -> None:
+        super().update()
+
 
 class RightPaddle(Paddle):
     UP_CONTROL = pygame.K_UP
     DOWN_CONTROL = pygame.K_DOWN
+    LEFT_CONTROL = pygame.K_LEFT
+    RIGHT_CONTROL = pygame.K_RIGHT
+
     COLOR = "red"
 
     def __init__(self) -> None:

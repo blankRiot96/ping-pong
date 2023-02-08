@@ -46,7 +46,7 @@ class Game:
         self.screen.fill((30, 30, 40))
 
         self.state.draw()
-        pygame.draw.rect(self.screen, "red", (150, 10, 200, 30), width=3)
+        # pygame.draw.rect(self.screen, "red", (150, 10, 200, 30), width=3)
 
         pygame.display.update()
 

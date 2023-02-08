@@ -14,11 +14,16 @@ class Powerup(abc.ABC):
         self.energy_cost = energy_cost
         self.image = image
         self.default_image = self.image.copy()
-        # self.selected_image =
+        self.selected_image = self.get_selected_image()
         self.rect = self.image.get_rect()
         self.title = title
         self.__pos = pygame.Vector2()
         self.active = False
+
+    def get_selected_image(self):
+        px_array = pygame.PixelArray(self.default_image.copy())
+        px_array.replace((255, 255, 255), (255, 255, 0))
+        return px_array.make_surface()
 
     @property
     def pos(self) -> pygame.Vector2:
@@ -50,13 +55,19 @@ class Powerup(abc.ABC):
 
 
 class LongBat(Powerup):
+    DURATION = 3
+
     def __init__(self, paddle) -> None:
         image = pygame.image.load("assets/longer-bat.png").convert_alpha()
         title = "Longer Bat"
         energy_cost = 25
         super().__init__(image, title, energy_cost, paddle)
 
-        self.duration_timer = Time(3)
+        self.duration_timer = Time(LongBat.DURATION)
+
+    def on_choose(self) -> None:
+        super().on_choose()
+        self.duration_timer.reset()
 
     def update(self):
         super().update()
@@ -65,6 +76,7 @@ class LongBat(Powerup):
             self.paddle.image = pygame.Surface(
                 (self.paddle.SIZE[0], self.paddle.SIZE[1] + 50)
             )
+            self.paddle.rect = self.paddle.image.get_rect(topleft=self.paddle.pos)
             self.paddle.image.fill(self.paddle.COLOR)
             if self.duration_timer.tick():
                 self.active = False
@@ -114,6 +126,14 @@ class Powerups:
             MirrorPaddles(self.glow.right_paddle),
         )
 
+        self.current_powerup_index = {"left": 0, "right": 0}
+        self.paddle_keys = {
+            self.glow.left_paddle: "left",
+            self.glow.right_paddle: "right",
+        }
+
+        self.all_powerups = self.left_paddle_powerups + self.right_paddle_powerups
+
         self.set_positions()
 
     def set_positions(self):
@@ -129,16 +149,49 @@ class Powerups:
             powerup.pos = initial_right_pos + horizontal_padding
             horizontal_padding[0] += spacing
 
-    def update(self):
-        for powerup in self.left_paddle_powerups:
-            powerup.update()
+    def consume_keys(self, event: pygame.event.Event) -> None:
+        for paddle in self.glow.left_paddle, self.glow.right_paddle:
+            if event.key == paddle.LEFT_CONTROL:
+                self.current_powerup_index[self.paddle_keys[paddle]] -= 1
+                if self.current_powerup_index[self.paddle_keys[paddle]] < 0:
+                    self.current_powerup_index[self.paddle_keys[paddle]] = (
+                        len(self.left_paddle_powerups) - 1
+                    )
 
-        for powerup in self.right_paddle_powerups:
+            elif event.key == paddle.RIGHT_CONTROL:
+                self.current_powerup_index[self.paddle_keys[paddle]] += 1
+                if self.current_powerup_index[self.paddle_keys[paddle]] >= len(
+                    self.left_paddle_powerups
+                ):
+                    self.current_powerup_index[self.paddle_keys[paddle]] = 0
+
+    def on_enter(self, event: pygame.event.Event) -> None:
+        if event.key == pygame.K_q:
+            self.left_paddle_powerups[self.current_powerup_index["left"]].on_choose()
+        elif event.key == pygame.K_RETURN:
+            self.right_paddle_powerups[self.current_powerup_index["right"]].on_choose()
+
+    def update(self):
+        for index, powerup in enumerate(self.left_paddle_powerups):
+            if index == self.current_powerup_index["left"]:
+                powerup.image = pygame.transform.scale(powerup.selected_image, (60, 60))
+                continue
+            powerup.image = powerup.default_image.copy()
+
+        for index, powerup in enumerate(self.right_paddle_powerups):
+            if index == self.current_powerup_index["right"]:
+                powerup.image = pygame.transform.scale(powerup.selected_image, (60, 60))
+                continue
+            powerup.image = powerup.default_image.copy()
+
+        for event in self.glow.events:
+            if event.type == pygame.KEYDOWN:
+                self.consume_keys(event)
+                self.on_enter(event)
+
+        for powerup in self.all_powerups:
             powerup.update()
 
     def draw(self):
-        for powerup in self.left_paddle_powerups:
-            powerup.draw()
-
-        for powerup in self.right_paddle_powerups:
+        for powerup in self.all_powerups:
             powerup.draw()
