@@ -1,6 +1,7 @@
 import abc
 import pygame
 from game.global_state import Global
+from game.helper import Time
 
 
 class Paddle(abc.ABC):
@@ -15,6 +16,8 @@ class Paddle(abc.ABC):
         self.__score = 0
         self.font = pygame.font.Font(None, 40)
         self.score_surf = self.font.render(str(self.__score), True, "white")
+        self.energy = 100
+        self.energy_cooldown = Time(1)
 
     @property
     def score(self):
@@ -38,6 +41,11 @@ class Paddle(abc.ABC):
 
         self.rect.topleft = self.pos
 
+        if self.energy_cooldown.tick():
+            self.energy += 1
+            if self.energy >= 100:
+                self.energy = 100
+
     def draw(self) -> None:
         self.glow.screen.blit(self.image, self.pos)
         self.glow.screen.blit(self.score_surf, (self.pos.x, 20))
@@ -46,11 +54,12 @@ class Paddle(abc.ABC):
 class LeftPaddle(Paddle):
     UP_CONTROL = pygame.K_w
     DOWN_CONTROL = pygame.K_s
+    COLOR = "blue"
 
     def __init__(self) -> None:
         super().__init__()
         self.image = pygame.Surface(self.SIZE)
-        self.image.fill("blue")
+        self.image.fill(self.COLOR)
         self.rect = self.image.get_rect(centery=self.glow.SCRECT.centery)
         self.rect.x = self.PAD
         self.pos = pygame.Vector2(self.rect.topleft)
@@ -59,11 +68,12 @@ class LeftPaddle(Paddle):
 class RightPaddle(Paddle):
     UP_CONTROL = pygame.K_UP
     DOWN_CONTROL = pygame.K_DOWN
+    COLOR = "red"
 
     def __init__(self) -> None:
         super().__init__()
         self.image = pygame.Surface(self.SIZE)
-        self.image.fill("red")
+        self.image.fill(self.COLOR)
         self.rect = self.image.get_rect(centery=self.glow.SCRECT.centery)
         self.rect.x = self.glow.SCRECT.width - self.rect.width - self.PAD
         self.pos = pygame.Vector2(self.rect.topleft)

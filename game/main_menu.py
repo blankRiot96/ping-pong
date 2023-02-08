@@ -25,7 +25,8 @@ class Button:
     FONT = pygame.font.Font(None, 40)
     PAD_Y = -50
     PAD_SEGMENT = 20
-    SPACE_Y = 20
+    ORG_SPACE_Y = 20
+    SPACE_Y = ORG_SPACE_Y
     HOVER_SPEED = 30
 
     def __init__(self, title: str, statename: str = "") -> None:
@@ -65,6 +66,7 @@ class Button:
 
 class Buttons:
     def __init__(self) -> None:
+        Button.SPACE_Y = Button.ORG_SPACE_Y
         self.btns = [
             Button("< Play >", statename="maingame"),
             Button("< Settings >"),
