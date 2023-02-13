@@ -13,11 +13,12 @@ class Paddle(abc.ABC):
         super().__init__()
         self.glow = Global()
         self.speed = 0.0
-        self.__score = 0
+        self.__score = 6
         self.font = pygame.font.Font(None, 40)
         self.score_surf = self.font.render(str(self.__score), True, "white")
         self.energy = 100
         self.energy_cooldown = Time(0.1)
+        self.active = True
 
     @property
     def score(self):
@@ -34,6 +35,9 @@ class Paddle(abc.ABC):
     def update_pos(self):
         keys = self.glow.keys
         dt = self.glow.dt
+
+        if not self.active:
+            return
         if keys[self.UP_CONTROL]:
             self.pos.y -= self.MAXSPEED * dt
         elif keys[self.DOWN_CONTROL]:
@@ -66,9 +70,6 @@ class LeftPaddle(Paddle):
         self.rect = self.image.get_rect(centery=self.glow.SCRECT.centery)
         self.rect.x = self.PAD
         self.pos = pygame.Vector2(self.rect.topleft)
-
-    def update(self) -> None:
-        super().update()
 
 
 class RightPaddle(Paddle):

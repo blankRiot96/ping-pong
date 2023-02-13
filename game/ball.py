@@ -10,6 +10,8 @@ def get_dv(rad):
 
 
 class Ball:
+    active = True
+
     def __init__(self, size) -> None:
         self.size = size
         self.size_tup = size, size
@@ -70,17 +72,29 @@ class Ball:
             self.glow.left_paddle.score += 1
             self.alive = False
 
+    def bounce_around(self):
+        if self.hitbox.left < 0:
+            self.alive = False
+        elif self.hitbox.right > self.glow.SCREEN_WIDTH:
+            self.alive = False
+
     def on_death(self):
         if not self.alive:
             self.glow.ball = type(self)(50)
 
+    def on_active(self):
+        if Ball.active:
+            self.update_score()
+        else:
+            self.bounce_around()
+
     def update(self):
         self.move()
-        self.collide_left_paddle()
-        self.collide_right_paddle()
         self.collide_bottom()
         self.collide_top()
-        self.update_score()
+        self.collide_left_paddle()
+        self.collide_right_paddle()
+        self.on_active()
         self.on_death()
 
     def draw(self):

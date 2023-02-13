@@ -31,6 +31,19 @@ class GameState:
         self.glow.ball = Ball(50)
         self.dotted_lines.set_alpha(50)
         self.powerups = Powerups()
+        self.game_over_surf = pygame.Surface(self.glow.SCRECT.size)
+        self.game_over_surf.set_alpha(0)
+        self.game_over_alpha = 0
+        self.won = False
+
+        self.blue_win_surf = self.game_over_surf.copy()
+        self.blue_win_surf.fill("cyan")
+
+        self.red_win_surf = self.game_over_surf.copy()
+        self.red_win_surf.fill("red")
+
+        self.font = pygame.font.Font(None, 65)
+        Ball.active = True
 
     def update(self) -> None:
         self.glow.left_paddle.update()
@@ -38,10 +51,48 @@ class GameState:
         self.powerups.update()
 
         self.glow.ball.update()
-
-    def on_victory(self):
         if 7 in (self.glow.left_paddle.score, self.glow.right_paddle.score):
-            self.glow.current_state = "menu"
+            self.won = True
+
+        if self.won:
+            self.on_victory_update()
+
+    def on_victory_update(self):
+        self.won = True
+        self.glow.left_paddle.active = False
+        self.glow.right_paddle.active = False
+
+        Ball.active = False
+        if self.game_over_alpha < 100:
+            self.game_over_alpha += 10.3 * self.glow.dt
+
+        if self.glow.left_paddle.score == 7:
+            self.blue_win_surf.set_alpha(self.game_over_alpha)
+        elif self.glow.right_paddle.score == 7:
+            self.red_win_surf.set_alpha(self.game_over_alpha)
+
+        for event in self.glow.events:
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_RETURN:
+                    self.glow.current_state = "menu"
+
+    def on_victory_draw(self):
+        self.glow.screen.blit(self.blue_win_surf, (0, 0))
+        self.glow.screen.blit(self.red_win_surf, (0, 0))
+        self.glow.screen.blit(
+            self.font.render("Press ENTER to go to main menu", True, "yellow"),
+            (10, 100),
+        )
+        if self.glow.left_paddle.score == 7:
+            self.glow.screen.blit(
+                self.font.render("BLUE WINS", True, "yellow"),
+                self.glow.SCRECT.center,
+            )
+        else:
+            self.glow.screen.blit(
+                self.font.render("RED WINS", True, "yellow"),
+                self.glow.SCRECT.center,
+            )
 
     def draw(self) -> None:
         self.glow.screen.blit(self.dotted_lines, (0, 0))
@@ -50,4 +101,6 @@ class GameState:
         self.powerups.draw()
 
         self.glow.ball.draw()
-        self.on_victory()
+
+        if self.won:
+            self.on_victory_draw()
