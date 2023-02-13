@@ -17,7 +17,7 @@ class Paddle(abc.ABC):
         self.font = pygame.font.Font(None, 40)
         self.score_surf = self.font.render(str(self.__score), True, "white")
         self.energy = 100
-        self.energy_cooldown = Time(1)
+        self.energy_cooldown = Time(0.1)
 
     @property
     def score(self):

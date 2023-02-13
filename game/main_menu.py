@@ -49,7 +49,7 @@ class Button:
         for event in self.glow.events:
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_RETURN:
-                    self.glow.current_state = self.statename
+                    self.glow.transition.start(self.statename)
 
     def update(self):
         if self.color == "yellow":

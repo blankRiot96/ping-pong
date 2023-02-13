@@ -1,5 +1,6 @@
 import pygame
 from game.global_state import Global
+from game.transitions import Transition
 
 
 class Game:
@@ -8,6 +9,7 @@ class Game:
 
         from game.states import GameState, MenuState
 
+        self.glow.transition = Transition()
         self.glow.current_state = "menu"
         self.states = {"menu": MenuState, "maingame": GameState}
         self.state = self.states[self.glow.current_state]()
@@ -37,6 +39,7 @@ class Game:
 
         self.handle_quit()
 
+        self.glow.transition.update()
         self.state.update()
         if self.glow.current_state != self.last_current_state:
             self.state = self.states[self.glow.current_state]()
@@ -46,8 +49,9 @@ class Game:
         self.screen.fill((30, 30, 40))
 
         self.state.draw()
-        # pygame.draw.rect(self.screen, "red", (150, 10, 200, 30), width=3)
+        # pygame.draw.rect(self.screen, "red", (10, 50, 150, 20), width=3)
 
+        self.glow.transition.draw()
         pygame.display.update()
 
     def run(self) -> None:
