@@ -9,6 +9,7 @@ class Global:
     SCREEN_WIDTH, SCREEN_HEIGHT = (800, 500)
     SCRECT = pygame.Rect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT)
     FPS = 60
+    screen: pygame.Surface
 
     def __new__(cls: type[Self], *args, **kwargs) -> Self:
         if Global._inst is None:

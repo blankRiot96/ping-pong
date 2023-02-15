@@ -1,4 +1,11 @@
 import time
+import pygame
+
+
+def circle_surf(color, radius):
+    surf = pygame.Surface((radius * 2, radius * 2), pygame.SRCALPHA)
+    pygame.draw.circle(surf, color, (radius, radius), radius)
+    return surf
 
 
 class Time:

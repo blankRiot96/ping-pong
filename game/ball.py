@@ -1,5 +1,7 @@
 import pygame, random, math
 from game.global_state import Global
+from game.animations import BallParticle
+from game.helper import circle_surf
 
 
 def get_dv(rad):
@@ -9,21 +11,65 @@ def get_dv(rad):
     return pygame.Vector2(dx, dy)
 
 
+def get_rand_offset(scale_factor: float) -> float:
+    return random.uniform(-1, 1) * scale_factor
+
+
+class BallTrail:
+    def __init__(self) -> None:
+        self.glow = Global()
+        self.particles: list[BallParticle] = list()
+        self.particles_per_tick = 3
+
+    def update(self):
+        for _ in range(self.particles_per_tick):
+            self.particles.append(
+                BallParticle(
+                    get_rand_offset(self.glow.ball.size / 3),
+                    get_rand_offset(self.glow.ball.size / 3),
+                )
+            )
+
+        for particle in list(self.particles):
+            particle.update()
+            if not particle.alive:
+                self.particles.remove(particle)
+
+    def draw(self):
+        for particle in self.particles:
+            particle.draw()
+
+
 class Ball:
     active = True
+    ORIGINAL_COLOR = (0, 200, 0)
 
-    def __init__(self, size) -> None:
+    def __init__(self, size, mini: bool = False) -> None:
+        self.mini = mini
         self.size = size
+        self.color = Ball.ORIGINAL_COLOR
         self.size_tup = size, size
         self.glow = Global()
-        self.image = pygame.Surface(self.size_tup, pygame.SRCALPHA)
-        pygame.draw.circle(self.image, "white", (size / 2, size / 2), size / 2)
+        self.create_image()
         self.hitbox = self.image.get_rect(center=self.glow.SCRECT.center)
         self.pos = pygame.Vector2(self.glow.SCRECT.center)
         self.rad = random.uniform(0, 2 * math.pi)
         self.speed = 350.2
+        self.original_speed = self.speed
         self.dv = pygame.Vector2()
         self.alive = True
+        self.trail = BallTrail()
+        self.create_glow()
+
+    def create_image(self):
+        self.image = pygame.Surface(self.size_tup, pygame.SRCALPHA)
+        pygame.draw.circle(
+            self.image, self.color, (self.size / 2, self.size / 2), self.size / 2
+        )
+
+    def create_glow(self):
+        self.glow_surf = circle_surf(BallParticle.GLOW_COLOR, (self.size / 2) * 1.5)
+        self.glow_rect = self.glow_surf.get_rect(center=self.pos)
 
     def collide_left_paddle(self):
         if not self.hitbox.colliderect(self.glow.left_paddle.rect):
@@ -58,9 +104,9 @@ class Ball:
 
     def move(self):
         dv = get_dv(self.rad)
-        self.dv = dv
         dv.x *= self.glow.dt * self.speed
         dv.y *= self.glow.dt * self.speed
+        self.dv = dv
         self.pos += dv
         self.hitbox.center = self.pos
 
@@ -79,6 +125,8 @@ class Ball:
             self.alive = False
 
     def on_death(self):
+        if self.mini:
+            return
         if not self.alive:
             self.glow.ball = type(self)(50)
 
@@ -96,7 +144,13 @@ class Ball:
         self.collide_right_paddle()
         self.on_active()
         self.on_death()
+        self.create_glow()
+        self.trail.update()
 
     def draw(self):
         self.glow.screen.blit(self.image, self.hitbox)
+        self.trail.draw()
+        self.glow.screen.blit(
+            self.glow_surf, self.glow_rect, special_flags=pygame.BLEND_RGB_ADD
+        )
         # pygame.draw.rect(self.glow.screen, "red", self.hitbox, width=3)

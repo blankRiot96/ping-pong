@@ -2,6 +2,7 @@ import abc
 import pygame
 from game.global_state import Global
 from game.helper import Time
+from game.animations import BallParticle
 
 
 class Powerup(abc.ABC):
@@ -76,7 +77,6 @@ class LongBat(Powerup):
             self.paddle.image = pygame.Surface(
                 (self.paddle.SIZE[0], self.paddle.SIZE[1] + 50)
             )
-            self.paddle.rect = self.paddle.image.get_rect(topleft=self.paddle.pos)
             self.paddle.image.fill(self.paddle.COLOR)
             if self.duration_timer.tick():
                 self.active = False
@@ -84,13 +84,33 @@ class LongBat(Powerup):
             self.paddle.image = pygame.Surface(self.paddle.SIZE)
             self.paddle.image.fill(self.paddle.COLOR)
 
+        self.paddle.rect = self.paddle.image.get_rect(center=self.paddle.pos)
+
 
 class LightningBall(Powerup):
     def __init__(self, paddle) -> None:
         image = pygame.image.load("assets/lightning-ball.png").convert_alpha()
         title = "Lightning Ball"
         energy_cost = 50
+        self.duration = Time(3)
         super().__init__(image, title, energy_cost, paddle)
+
+    def on_choose(self) -> None:
+        super().on_choose()
+        self.duration.reset()
+        self.glow.ball.color = "yellow"
+        self.glow.ball.create_image()
+
+    def update(self):
+        super().update()
+
+        if self.duration.tick():
+            self.active = False
+
+        if self.active:
+            self.glow.ball.speed = self.glow.ball.original_speed * 2
+        else:
+            self.glow.ball.speed = self.glow.ball.original_speed
 
 
 class MuliBall(Powerup):

@@ -13,7 +13,7 @@ class Paddle(abc.ABC):
         super().__init__()
         self.glow = Global()
         self.speed = 0.0
-        self.__score = 6
+        self.__score = 0
         self.font = pygame.font.Font(None, 40)
         self.score_surf = self.font.render(str(self.__score), True, "white")
         self.energy = 100
@@ -43,7 +43,7 @@ class Paddle(abc.ABC):
         elif keys[self.DOWN_CONTROL]:
             self.pos.y += self.MAXSPEED * dt
 
-        self.rect.topleft = self.pos
+        self.rect.center = self.pos
 
         if self.energy_cooldown.tick():
             self.energy += 1
@@ -51,7 +51,7 @@ class Paddle(abc.ABC):
                 self.energy = 100
 
     def draw(self) -> None:
-        self.glow.screen.blit(self.image, self.pos)
+        self.glow.screen.blit(self.image, self.rect)
         self.glow.screen.blit(self.score_surf, (self.pos.x, 20))
 
 
@@ -68,8 +68,8 @@ class LeftPaddle(Paddle):
         self.image = pygame.Surface(self.SIZE)
         self.image.fill(self.COLOR)
         self.rect = self.image.get_rect(centery=self.glow.SCRECT.centery)
-        self.rect.x = self.PAD
-        self.pos = pygame.Vector2(self.rect.topleft)
+        self.rect.x = (self.rect.width / 4) + self.PAD
+        self.pos = pygame.Vector2(self.rect.center)
 
 
 class RightPaddle(Paddle):
@@ -86,4 +86,4 @@ class RightPaddle(Paddle):
         self.image.fill(self.COLOR)
         self.rect = self.image.get_rect(centery=self.glow.SCRECT.centery)
         self.rect.x = self.glow.SCRECT.width - self.rect.width - self.PAD
-        self.pos = pygame.Vector2(self.rect.topleft)
+        self.pos = pygame.Vector2(self.rect.center)
