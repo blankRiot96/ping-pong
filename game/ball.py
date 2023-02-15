@@ -15,6 +15,10 @@ def get_rand_offset(scale_factor: float) -> float:
     return random.uniform(-1, 1) * scale_factor
 
 
+def get_right_paddle_fallback() -> float:
+    return random.uniform(2 * math.pi / 3, (4 * math.pi) / 3)
+
+
 class BallTrail:
     def __init__(self) -> None:
         self.glow = Global()
@@ -58,14 +62,19 @@ class Ball:
         self.original_speed = self.speed
         self.dv = pygame.Vector2()
         self.alive = True
-        self.trail = BallTrail()
+        self.trail = None if mini else BallTrail()
         self.create_glow()
+        self.swap_facto = 1
 
     def create_image(self):
         self.image = pygame.Surface(self.size_tup, pygame.SRCALPHA)
         pygame.draw.circle(
             self.image, self.color, (self.size / 2, self.size / 2), self.size / 2
         )
+
+    def mirror_swap(self):
+        self.dv.x *= self.swap_facto
+        self.dv.y *= self.swap_facto
 
     def create_glow(self):
         self.glow_surf = circle_surf(BallParticle.GLOW_COLOR, (self.size / 2) * 1.5)
@@ -79,10 +88,12 @@ class Ball:
         choice = random.choice(choices)
 
         self.rad = random.uniform(*choice)
+        self.mirror_swap()
 
     def collide_right_paddle(self):
         if self.hitbox.colliderect(self.glow.right_paddle.rect):
-            self.rad = random.uniform(2 * math.pi / 3, (4 * math.pi) / 3)
+            self.rad = get_right_paddle_fallback()
+            self.mirror_swap()
 
     def collide_bottom(self):
         if not (self.pos.y > self.glow.SCREEN_HEIGHT - (self.size / 2)):
@@ -107,15 +118,17 @@ class Ball:
         dv.x *= self.glow.dt * self.speed
         dv.y *= self.glow.dt * self.speed
         self.dv = dv
-        self.pos += dv
+
+    def finalize_pos(self):
+        self.pos += self.dv
         self.hitbox.center = self.pos
 
     def update_score(self):
         if self.hitbox.left < 0:
-            self.glow.right_paddle.score += 1
+            self.glow.right_paddle.score += 1 if self.mini else 10
             self.alive = False
         elif self.hitbox.right > self.glow.SCREEN_WIDTH:
-            self.glow.left_paddle.score += 1
+            self.glow.left_paddle.score += 1 if self.mini else 10
             self.alive = False
 
     def bounce_around(self):
@@ -124,10 +137,16 @@ class Ball:
         elif self.hitbox.right > self.glow.SCREEN_WIDTH:
             self.alive = False
 
+    def on_mini_ball_death(self):
+        if not self.alive:
+            self.glow.balls.remove(self)
+
     def on_death(self):
         if self.mini:
+            self.on_mini_ball_death()
             return
         if not self.alive:
+            pygame.event.post(self.glow.BALL_DEATH_EVENT)
             self.glow.ball = type(self)(50)
 
     def on_active(self):
@@ -135,6 +154,10 @@ class Ball:
             self.update_score()
         else:
             self.bounce_around()
+
+    def trail_handler(self):
+        if not self.mini:
+            self.trail.update()
 
     def update(self):
         self.move()
@@ -144,12 +167,15 @@ class Ball:
         self.collide_right_paddle()
         self.on_active()
         self.on_death()
+        self.trail_handler()
         self.create_glow()
-        self.trail.update()
+        self.finalize_pos()
 
     def draw(self):
         self.glow.screen.blit(self.image, self.hitbox)
-        self.trail.draw()
+
+        if not self.mini:
+            self.trail.draw()
         self.glow.screen.blit(
             self.glow_surf, self.glow_rect, special_flags=pygame.BLEND_RGB_ADD
         )

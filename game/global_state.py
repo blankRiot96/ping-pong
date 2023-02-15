@@ -9,6 +9,8 @@ class Global:
     SCREEN_WIDTH, SCREEN_HEIGHT = (800, 500)
     SCRECT = pygame.Rect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT)
     FPS = 60
+    BALL_DEATH = pygame.event.custom_type()
+    BALL_DEATH_EVENT = pygame.event.Event(BALL_DEATH)
     screen: pygame.Surface
 
     def __new__(cls: type[Self], *args, **kwargs) -> Self:

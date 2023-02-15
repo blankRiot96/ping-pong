@@ -36,6 +36,7 @@ class Game:
         self.glow.events = events
         self.glow.keys = pygame.key.get_pressed()
         self.glow.dt = self.clock.tick(self.glow.FPS) / 1000
+        self.glow.dt = min(self.glow.dt, 0.01)
 
         self.handle_quit()
 

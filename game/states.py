@@ -24,9 +24,11 @@ class MenuState:
 
 class GameState:
     dotted_lines = pygame.image.load("assets/dotted.png").convert_alpha()
+    WIN_REQ = 100
 
     def __init__(self) -> None:
         self.glow = Global()
+        self.glow.balls = []
         self.glow.left_paddle, self.glow.right_paddle = (LeftPaddle(), RightPaddle())
         self.glow.ball = Ball(50)
         self.dotted_lines.set_alpha(50)
@@ -51,7 +53,10 @@ class GameState:
         self.powerups.update()
 
         self.glow.ball.update()
-        if 7 in (self.glow.left_paddle.score, self.glow.right_paddle.score):
+        if (
+            self.glow.left_paddle.score >= self.WIN_REQ
+            or self.glow.right_paddle.score >= self.WIN_REQ
+        ):
             self.won = True
 
         if self.won:
@@ -66,9 +71,9 @@ class GameState:
         if self.game_over_alpha < 100:
             self.game_over_alpha += 10.3 * self.glow.dt
 
-        if self.glow.left_paddle.score == 7:
+        if self.glow.left_paddle.score >= self.WIN_REQ:
             self.blue_win_surf.set_alpha(self.game_over_alpha)
-        elif self.glow.right_paddle.score == 7:
+        elif self.glow.right_paddle.score >= self.WIN_REQ:
             self.red_win_surf.set_alpha(self.game_over_alpha)
 
         for event in self.glow.events:
@@ -83,7 +88,7 @@ class GameState:
             self.font.render("Press ENTER to go to main menu", True, "yellow"),
             (10, 100),
         )
-        if self.glow.left_paddle.score == 7:
+        if self.glow.left_paddle.score >= self.WIN_REQ:
             self.glow.screen.blit(
                 self.font.render("BLUE WINS", True, "yellow"),
                 self.glow.SCRECT.center,

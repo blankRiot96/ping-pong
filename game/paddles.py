@@ -87,3 +87,7 @@ class RightPaddle(Paddle):
         self.rect = self.image.get_rect(centery=self.glow.SCRECT.centery)
         self.rect.x = self.glow.SCRECT.width - self.rect.width - self.PAD
         self.pos = pygame.Vector2(self.rect.center)
+
+    def draw(self) -> None:
+        self.glow.screen.blit(self.image, self.rect)
+        self.glow.screen.blit(self.score_surf, (self.pos.x - 30, 20))

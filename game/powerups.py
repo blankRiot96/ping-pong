@@ -2,7 +2,6 @@ import abc
 import pygame
 from game.global_state import Global
 from game.helper import Time
-from game.animations import BallParticle
 
 
 class Powerup(abc.ABC):
@@ -88,6 +87,8 @@ class LongBat(Powerup):
 
 
 class LightningBall(Powerup):
+    active = False
+
     def __init__(self, paddle) -> None:
         image = pygame.image.load("assets/lightning-ball.png").convert_alpha()
         title = "Lightning Ball"
@@ -97,36 +98,85 @@ class LightningBall(Powerup):
 
     def on_choose(self) -> None:
         super().on_choose()
+        LightningBall.active = True
         self.duration.reset()
         self.glow.ball.color = "yellow"
+        self.glow.ball.create_image()
+
+    def on_deactive(self):
+        LightningBall.active = False
+        self.glow.ball.color = self.glow.ball.ORIGINAL_COLOR
         self.glow.ball.create_image()
 
     def update(self):
         super().update()
 
-        if self.duration.tick():
-            self.active = False
+        for event in self.glow.events:
+            if event.type == self.glow.BALL_DEATH:
+                self.on_deactive()
 
-        if self.active:
+        if LightningBall.active:
             self.glow.ball.speed = self.glow.ball.original_speed * 2
+            if self.duration.tick():
+                self.on_deactive()
         else:
             self.glow.ball.speed = self.glow.ball.original_speed
 
 
 class MuliBall(Powerup):
+    BALL_SIZE = 30
+
     def __init__(self, paddle) -> None:
         image = pygame.image.load("assets/multi-balls.png").convert_alpha()
         title = "Multi Balls"
         energy_cost = 50
         super().__init__(image, title, energy_cost, paddle)
 
+    def on_choose(self) -> None:
+        super().on_choose()
+        for _ in range(int(self.paddle.energy / 4)):
+            self.glow.balls.append(type(self.glow.ball)(MuliBall.BALL_SIZE, True))
+
+    def update(self):
+        super().update()
+        for ball in self.glow.balls:
+            ball.update()
+
+    def draw(self):
+        super().draw()
+        for ball in self.glow.balls:
+            ball.draw()
+
 
 class MirrorPaddles(Powerup):
+    G_ACTIVE = False
+
     def __init__(self, paddle) -> None:
         image = pygame.image.load("assets/mirror-paddle.png").convert_alpha()
         title = "Mirror Paddle"
         energy_cost = 100
         super().__init__(image, title, energy_cost, paddle)
+        self.duration = Time(5)
+
+    def swap_paddles(self):
+        self.glow.left_paddle.pos, self.glow.right_paddle.pos = (
+            self.glow.right_paddle.pos,
+            self.glow.left_paddle.pos,
+        )
+        self.glow.ball.swap_facto *= -1
+
+    def on_choose(self) -> None:
+        super().on_choose()
+        if not MirrorPaddles.G_ACTIVE:
+            self.swap_paddles()
+        MirrorPaddles.G_ACTIVE = True
+
+    def update(self):
+        super().update()
+
+        if MirrorPaddles.G_ACTIVE and self.duration.tick():
+            MirrorPaddles.G_ACTIVE = False
+            self.swap_paddles()
 
 
 class Powerups:
