@@ -7,11 +7,11 @@ class Game:
     def __init__(self) -> None:
         self.win_init()
 
-        from game.states import GameState, MenuState
+        from game.states import GameState, MenuState, IntroState
 
         self.glow.transition = Transition()
-        self.glow.current_state = "menu"
-        self.states = {"menu": MenuState, "maingame": GameState}
+        self.glow.current_state = "intro"
+        self.states = {"menu": MenuState, "maingame": GameState, "intro": IntroState}
         self.state = self.states[self.glow.current_state]()
         self.last_current_state = self.glow.current_state
 

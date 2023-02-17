@@ -53,6 +53,12 @@ class Paddle(abc.ABC):
     def draw(self) -> None:
         self.glow.screen.blit(self.image, self.rect)
         self.glow.screen.blit(self.score_surf, (self.pos.x, 20))
+        pygame.draw.rect(
+            self.glow.screen,
+            "cyan",
+            (self.original_pos.x, 60, self.energy, 20),
+            border_radius=4,
+        )
 
 
 class LeftPaddle(Paddle):
@@ -70,6 +76,7 @@ class LeftPaddle(Paddle):
         self.rect = self.image.get_rect(centery=self.glow.SCRECT.centery)
         self.rect.x = (self.rect.width / 4) + self.PAD
         self.pos = pygame.Vector2(self.rect.center)
+        self.original_pos = self.pos.copy()
 
 
 class RightPaddle(Paddle):
@@ -87,7 +94,14 @@ class RightPaddle(Paddle):
         self.rect = self.image.get_rect(centery=self.glow.SCRECT.centery)
         self.rect.x = self.glow.SCRECT.width - self.rect.width - self.PAD
         self.pos = pygame.Vector2(self.rect.center)
+        self.original_pos = self.pos.copy()
 
     def draw(self) -> None:
         self.glow.screen.blit(self.image, self.rect)
         self.glow.screen.blit(self.score_surf, (self.pos.x - 30, 20))
+        pygame.draw.rect(
+            self.glow.screen,
+            "cyan",
+            (self.original_pos.x - 100, 60, self.energy, 20),
+            border_radius=4,
+        )
